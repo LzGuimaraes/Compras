@@ -147,6 +147,58 @@ const ShoppingListScreen = ({ navigation }) => {
 
     return unsubscribe;
   }, [navigation]);
+  
+  // Finalizar compra e salvar no histórico
+  const finishPurchase = async () => {
+    if (shoppingList.length === 0) {
+      Alert.alert('Erro', 'Sua lista de compras está vazia.');
+      return;
+    }
+    
+    try {
+      // Obter histórico atual
+      const historyJson = await AsyncStorage.getItem('purchaseHistory');
+      let history = historyJson ? JSON.parse(historyJson) : [];
+      
+      // Adicionar compra atual ao histórico
+      const purchase = {
+        date: Date.now(),
+        items: [...shoppingList],
+        total: finalTotal
+      };
+      
+      // Adicionar ao início do array para mostrar as compras mais recentes primeiro
+      history.unshift(purchase);
+      
+      // Limitar o histórico a 10 compras
+      if (history.length > 10) {
+        history = history.slice(0, 10);
+      }
+      
+      // Salvar histórico atualizado
+      await AsyncStorage.setItem('purchaseHistory', JSON.stringify(history));
+      
+      // Limpar a lista de compras
+      await AsyncStorage.removeItem('shoppingList');
+      setShoppingList([]);
+      setTotalValue(0);
+      setFinalTotal(0);
+      setDiscount(0);
+      setDiscountPercent(0);
+      setCouponApplied(false);
+      setCouponCode('');
+      
+      // Mostrar confirmação
+      Alert.alert(
+        'Compra Finalizada',
+        'Sua compra foi registrada com sucesso!',
+        [{ text: 'OK', onPress: () => navigation.navigate('PurchaseHistory') }]
+      );
+    } catch (error) {
+      console.error('Erro ao finalizar compra:', error);
+      Alert.alert('Erro', 'Não foi possível finalizar sua compra. Tente novamente.');
+    }
+  };
 
   // Renderizar cada item da lista
   const renderItem = ({ item }) => (
@@ -267,7 +319,7 @@ const ShoppingListScreen = ({ navigation }) => {
             
             <TouchableOpacity 
               style={styles.checkoutButton}
-              onPress={() => navigation.navigate('Checkout', { finalTotal })}
+              onPress={finishPurchase}
             >
               <Text style={styles.checkoutButtonText}>Finalizar Compra</Text>
             </TouchableOpacity>

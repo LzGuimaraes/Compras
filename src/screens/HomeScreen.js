@@ -1,8 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useCart } from '../context/CartContext';
 
 const HomeScreen = ({ navigation }) => {
+  const { cartItems } = useCart();
+  
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
@@ -20,10 +23,24 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={styles.button} 
-          onPress={() => navigation.navigate('ShoppingList')}
+          style={[styles.button, styles.cartButton]} 
+          onPress={() => navigation.navigate('Cart')}
         >
-          <Text style={styles.buttonText}>Minha Lista de Compras</Text>
+          <Text style={styles.buttonText}>Meu Carrinho</Text>
+          {cartItems.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>
+                {cartItems.reduce((total, item) => total + (item.quantity || 1), 0)}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.button, styles.historyButton]} 
+          onPress={() => navigation.navigate('PurchaseHistory')}
+        >
+          <Text style={styles.buttonText}>Histórico de Compras</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -63,10 +80,35 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     elevation: 3,
+    position: 'relative',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  cartButton: {
+    backgroundColor: '#27ae60',
+  },
+  historyButton: {
+    backgroundColor: '#e67e22',
   },
   buttonText: {
     color: 'white',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    backgroundColor: '#e74c3c',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cartBadgeText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: 'bold',
   },
 });
